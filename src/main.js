@@ -62,9 +62,48 @@ export function Project(name, todos = []) {
     };
 }
 
-export function displayInfo(info) {
+export function displayProject(info) {
+    const mainContent = document.querySelector('.content');
+    mainContent.innerHTML = ''; // Clear previous content
 
+    const board = document.createElement('div');
+    board.className = 'project-board';
+    const projectHeader = document.createElement('div');
+    projectHeader.className = 'project-header';
+    const projectName = document.createElement('h2');
+    projectName.textContent = info; // Set the project name
+    projectHeader.appendChild(projectName);
+    mainContent.appendChild(projectHeader);
+
+
+    const statuses = ['Backlog', 'In Progress', 'Completed'];
+
+    statuses.forEach(status => {
+        const column = document.createElement('div');
+        column.className = 'column';
+        column.dataset.status = status.toLowerCase().replace(' ', '-');
+
+        const header = document.createElement('h3');
+        header.textContent = status;
+
+        const list = document.createElement('ul');
+        list.className = `todo-list ${status.toLowerCase().replace(' ', '-')}-list`;
+
+        // Example: Load todos for this project and status
+        /*const todos = getTodosForProjectAndStatus(projectName, status);
+        todos.forEach(todo => {
+            const li = document.createElement('li');
+            li.textContent = todo.title; // or format as needed
+            list.appendChild(li);
+        });*/
+
+        column.appendChild(header);
+        column.appendChild(list);
+        board.appendChild(column);
+    });
+
+    mainContent.appendChild(board);
 
 }
 
-   
+

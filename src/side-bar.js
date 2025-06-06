@@ -1,4 +1,5 @@
 import "./styles/side-bar.css";
+import { displayProject } from "./main.js"; // Assuming displayProject is defined in main.js
 
 export function createSidebar() {
     const sidebar = document.createElement('div');
@@ -35,7 +36,14 @@ export function createSidebar() {
     projects.forEach(project => {
         const li = document.createElement('li');
         li.textContent = project;
-        li.classList.add('add-project'); // Add class for targeting
+        if (li.textContent === '+ Add a new project') {
+            li.classList.add('add-project'); // Add class for targeting
+        }
+        else{
+            li.addEventListener('click', () => {
+                displayProject(li.textContent); // Assuming displayProject is defined elsewhere
+            });
+        }
         projectList.appendChild(li);
     });
     projectList.addEventListener('click', (e) => {
@@ -113,15 +121,39 @@ export function createPopupTemplateTodo() {
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select><br><br>
+            <label for="status">Status:</label>
+          <select id="status" name="status" required>
+            <option value="backlog">Backlog</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select><br><br>
            <label for="note">Note:</label><br><br>
             <textarea id="note" name="note" rows="4" cols="30" placeholder="Write your note here..."></textarea><br><br>
-          <button type="submit">Add</button>
+          <button type="submit" id="sub-todo" >Add</button>
           <button type="button" id="close-template">Close</button>
         </form>
       </div>
     `;
 
     document.body.appendChild(popup);
+
+    // Add event listener for the submit button
+    document.getElementById('sub-todo').addEventListener('click', (e) => {
+        e.preventDefault(); // 
+        const newTodo = document.getElementById('title');
+        const todoList = document.querySelector('.todo-list');
+        if (newTodo && newTodo.value.trim() !== '') {
+            const li = document.createElement('li');
+            li.textContent = newTodo.value;
+            todoList.appendChild(li);
+            newTodo.value = ''; // Clear input
+            li.addEventListener('click', () => {
+                displayProject(li.textContent);
+            });
+        }
+        popup.classList.add('hidden');
+       
+    });
 
     // Close logic
     document.getElementById('close-template').addEventListener('click', () => {
@@ -147,14 +179,26 @@ export function createPopupTemplateProject() {
         <form id="details-form">
           <label for="name">Name:</label>
           <input type="text" id="name" name="name" required><br><br>
-          <button type="submit">Add</button>
+          <button type="submit" id="sub-project">Add</button>
           <button type="button" id="close-template-project">Close</button>
         </form>
       </div>
     `;
 
     document.body.appendChild(popup);
-
+    // Add event listener for the submit button
+    document.getElementById('sub-project').addEventListener('click', (e) => {
+        e.preventDefault(); // 
+        const newProject = document.getElementById('name');
+        const projectList = document.querySelector('.project-list');
+        if (newProject && newProject.value.trim() !== '') {
+            const li = document.createElement('li');
+            li.textContent = newProject.value;
+            projectList.appendChild(li);
+            newProject.value = ''; // Clear input
+        }
+        popup.classList.add('hidden');
+    });
     // Close logic
     document.getElementById('close-template-project').addEventListener('click', () => {
         popup.classList.add('hidden');
@@ -165,3 +209,5 @@ export function createPopupTemplateProject() {
         popup.classList.add('hidden');
     });
 }
+
+
