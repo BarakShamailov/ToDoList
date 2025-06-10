@@ -18,19 +18,22 @@ export function createMainContent(main) {
     main.appendChild(content);
 }
 
-export function Todo(title, description, dueDate, priority,notes) {
+export function Todo(title, description, dueDate, priority,notes, status) {
     // getters for the properties
     const getTitle = () => title;
     const getDescription = () => description;
     const getDueDate = () => dueDate;
     const getPriority = () => priority;
     const getNotes = () => notes;
+    const getStatus = () => status; // Default status is 'backlog'
+
     // Setters for the properties
     const setNotes = (newNotes) => { notes = newNotes; };
     const setTitle = (newTitle) => { title = newTitle; };
     const setDescription = (newDescription) => { description = newDescription; };
     const setDueDate = (newDueDate) => { dueDate = newDueDate; };
     const setPriority = (newPriority) => { priority = newPriority; };
+    const setStatus = (newStatus) => { status = newStatus; };
     return {
         getTitle,
         getDescription,
@@ -38,10 +41,12 @@ export function Todo(title, description, dueDate, priority,notes) {
         getPriority,
         getNotes,
         setNotes,
+        getStatus,
         setTitle,
         setDescription,
         setDueDate,
-        setPriority
+        setPriority,
+        setStatus
     };
 };
 
@@ -104,6 +109,57 @@ export function displayProject(info) {
 
     mainContent.appendChild(board);
 
+}
+
+export function displayTask (todo) {
+    const mainContent = document.querySelector('.content');
+    mainContent.innerHTML = ''; // Clear previous content
+
+    const status = todo.getStatus(); // Make sure `getStatus()` exists in your `Todo` factory
+    
+
+    const card = document.createElement('div');
+    card.className = 'task-card';
+
+    // Task content
+    card.innerHTML = `
+        <h3>${todo.getTitle()}</h3>
+        <p><strong>Description:</strong> ${todo.getDescription()}</p>
+        <p><strong>Due:</strong> ${todo.getDueDate()}</p>
+        <p><strong>Priority:</strong> ${todo.getPriority()}</p>
+        <p><strong>Note:</strong> ${todo.getNotes()}</p>
+        <button class="edit-task">Edit</button>
+    `;
+
+    // Add edit logic
+    card.querySelector('.edit-task').addEventListener('click', () => {
+        const newTitle = prompt('Edit title:', todo.getTitle());
+        const newDescription = prompt('Edit description:', todo.getDescription());
+        const newDueDate = prompt('Edit due date:', todo.getDueDate());
+        const newPriority = prompt('Edit priority (low/medium/high):', todo.getPriority());
+        const newNote = prompt('Edit note:', todo.getNotes());
+
+        if (newTitle) todo.setTitle(newTitle);
+        if (newDescription) todo.setDescription(newDescription);
+        if (newDueDate) todo.setDueDate(newDueDate);
+        if (newPriority) todo.setPriority(newPriority);
+        if (newNote) todo.setNotes(newNote);
+
+        // Refresh UI
+        card.innerHTML = `
+            <h4>${todo.getTitle()}</h4>
+            <p><strong>Description:</strong> ${todo.getDescription()}</p>
+            <p><strong>Due:</strong> ${todo.getDueDate()}</p>
+            <p><strong>Priority:</strong> ${todo.getPriority()}</p>
+            <p><strong>Note:</strong> ${todo.getNotes()}</p>
+            <button class="edit-task">Edit</button>
+        `;
+
+        // Reattach edit event listener
+        card.querySelector('.edit-task').addEventListener('click', arguments.callee);
+    });
+
+    mainContent.appendChild(card);
 }
 
 

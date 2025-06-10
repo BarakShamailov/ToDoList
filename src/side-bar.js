@@ -1,5 +1,5 @@
 import "./styles/side-bar.css";
-import { displayProject } from "./main.js"; // Assuming displayProject is defined in main.js
+import { displayProject,Todo, displayTask } from "./main.js"; // Assuming displayProject is defined in main.js
 
 export function createSidebar() {
     const sidebar = document.createElement('div');
@@ -41,7 +41,7 @@ export function createSidebar() {
         }
         else{
             li.addEventListener('click', () => {
-                displayProject(li.textContent); // Assuming displayProject is defined elsewhere
+                displayProject(li.textContent); 
             });
         }
         projectList.appendChild(li);
@@ -137,9 +137,29 @@ export function createPopupTemplateTodo() {
 
     document.body.appendChild(popup);
 
-    // Add event listener for the submit button
-    document.getElementById('sub-todo').addEventListener('click', (e) => {
-        e.preventDefault(); // 
+    const form = popup.querySelector('#details-form');
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const title = form.title.value;
+        const description = form.description.value;
+        const dueDate = form.dueDate.value;
+        const priority = form.priority.value;
+        const note = form.note.value;
+        const status = form.status.value;
+
+        const todo = Todo(title, description, dueDate, priority, note, status);
+
+        // Debugging logs
+        console.log(todo.getTitle());
+        console.log(todo.getDescription());
+        console.log(todo.getDueDate());
+        console.log(todo.getPriority());
+        console.log(todo.getNotes());
+
+        displayTask(todo); // Your rendering function
+
         const newTodo = document.getElementById('title');
         const todoList = document.querySelector('.todo-list');
         if (newTodo && newTodo.value.trim() !== '') {
@@ -147,24 +167,23 @@ export function createPopupTemplateTodo() {
             li.textContent = newTodo.value;
             todoList.appendChild(li);
             newTodo.value = ''; // Clear input
-            li.addEventListener('click', () => {
-                displayProject(li.textContent);
-            });
+
         }
-        popup.classList.add('hidden');
-       
+
+        popup.classList.add('hidden'); // Close popup
+        form.reset(); // Optional: clear the form
     });
 
     // Close logic
-    document.getElementById('close-template').addEventListener('click', () => {
+    popup.querySelector('#close-template').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
 
-    // Optional: Close if overlay is clicked
-    document.getElementById('overlay').addEventListener('click', () => {
+    popup.querySelector('#overlay').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
 }
+
 
 
 export function createPopupTemplateProject() {
