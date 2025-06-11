@@ -1,6 +1,12 @@
 import "./styles/side-bar.css";
 import { displayProject,Todo, displayTask } from "./main.js"; // Assuming displayProject is defined in main.js
 
+export const todosNames = [];
+
+
+const projectNames = ['Default', 'Work', 'Personal','Education'];
+const projects = ['+ Add a new project', ...projectNames];
+
 export function createSidebar() {
     const sidebar = document.createElement('div');
     sidebar.className = 'sidebar';
@@ -32,12 +38,13 @@ export function createSidebar() {
     const projectList = document.createElement('ul');
     projectList.className = 'project-list';
 
-    const projects = ['+ Add a new project', 'Default', 'Work', 'Personal'];
     projects.forEach(project => {
         const li = document.createElement('li');
         li.textContent = project;
         if (li.textContent === '+ Add a new project') {
             li.classList.add('add-project'); // Add class for targeting
+            
+
         }
         else{
             li.addEventListener('click', () => {
@@ -45,11 +52,13 @@ export function createSidebar() {
             });
         }
         projectList.appendChild(li);
+        // Add project name to the array
     });
     projectList.addEventListener('click', (e) => {
         if (e.target.classList.contains('add-project')) {
             const popup = document.getElementById('template-popup-project');
             popup.classList.remove('hidden');
+            
         }
     });
 
@@ -65,6 +74,12 @@ export function createSidebar() {
     // My Todos button
     const myTodos = document.createElement('button');
     myTodos.textContent = 'My Todos';
+
+    myTodos.addEventListener('click', (e) => {
+        displayTask(todosNames)
+    }
+    );
+
     section3.appendChild(myTodos);
 
     const todotList = document.createElement('ul');
@@ -109,33 +124,55 @@ export function createPopupTemplateTodo() {
       <div class="template-container">
         <h2>Please Fill The details</h2>
         <form id="details-form">
+          <label for="project">Project:</label>
+          <select id="project" name="project" required></select><br><br>
+          
           <label for="title">Title:</label>
           <input type="text" id="title" name="title" required><br><br>
+          
           <label for="description">Description:</label>
           <input type="text" id="description" name="description" required><br><br>
+          
           <label for="dueDate">Due Date:</label>
           <input type="date" id="dueDate" name="dueDate" required><br><br>
+          
           <label for="priority">Priority:</label>
           <select id="priority" name="priority" required>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select><br><br>
-            <label for="status">Status:</label>
+          
+          <label for="status">Status:</label>
           <select id="status" name="status" required>
             <option value="backlog">Backlog</option>
             <option value="in-progress">In Progress</option>
             <option value="completed">Completed</option>
           </select><br><br>
-           <label for="note">Note:</label><br><br>
-            <textarea id="note" name="note" rows="4" cols="30" placeholder="Write your note here..."></textarea><br><br>
-          <button type="submit" id="sub-todo" >Add</button>
+          
+          <label for="note">Note:</label><br><br>
+          <textarea id="note" name="note" rows="4" cols="30" placeholder="Write your note here..."></textarea><br><br>
+          
+          <button type="submit" id="sub-todo">Add</button>
           <button type="button" id="close-template">Close</button>
         </form>
       </div>
     `;
 
     document.body.appendChild(popup);
+
+    const projectSelect = popup.querySelector('#project');
+    function populateProjectDropdown() {
+        projectSelect.innerHTML = ''; // clear existing
+        projectNames.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project;
+            option.textContent = project;
+            projectSelect.appendChild(option);
+        });
+    }
+
+    populateProjectDropdown();
 
     const form = popup.querySelector('#details-form');
 
@@ -148,17 +185,13 @@ export function createPopupTemplateTodo() {
         const priority = form.priority.value;
         const note = form.note.value;
         const status = form.status.value;
+        const selectedProject = form.project.value;
 
-        const todo = Todo(title, description, dueDate, priority, note, status);
+        const todo = Todo(title, description, dueDate, priority, note, status, selectedProject);
+        todosNames.push(todo); // Store the todo object in the array
 
-        // Debugging logs
-        console.log(todo.getTitle());
-        console.log(todo.getDescription());
-        console.log(todo.getDueDate());
-        console.log(todo.getPriority());
-        console.log(todo.getNotes());
 
-        displayTask(todo); // Your rendering function
+        displayTask(todosNames);
 
         const newTodo = document.getElementById('title');
         const todoList = document.querySelector('.todo-list');
@@ -166,15 +199,13 @@ export function createPopupTemplateTodo() {
             const li = document.createElement('li');
             li.textContent = newTodo.value;
             todoList.appendChild(li);
-            newTodo.value = ''; // Clear input
-
+            newTodo.value = '';
         }
 
-        popup.classList.add('hidden'); // Close popup
-        form.reset(); // Optional: clear the form
+        popup.classList.add('hidden');
+        form.reset();
     });
 
-    // Close logic
     popup.querySelector('#close-template').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
@@ -182,6 +213,9 @@ export function createPopupTemplateTodo() {
     popup.querySelector('#overlay').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
+
+    // Expose function so others can update the dropdown
+    popup.populateProjectDropdown = populateProjectDropdown;
 }
 
 
@@ -205,28 +239,42 @@ export function createPopupTemplateProject() {
     `;
 
     document.body.appendChild(popup);
-    // Add event listener for the submit button
-    document.getElementById('sub-project').addEventListener('click', (e) => {
-        e.preventDefault(); // 
+
+    const form = popup.querySelector('#details-form');
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault(); 
         const newProject = document.getElementById('name');
         const projectList = document.querySelector('.project-list');
+        const projectDropdown = document.querySelector('#project');
+
         if (newProject && newProject.value.trim() !== '') {
+            const projectName = newProject.value.trim();
+
             const li = document.createElement('li');
-            li.textContent = newProject.value;
+            li.textContent = projectName;
             projectList.appendChild(li);
-            newProject.value = ''; // Clear input
+
+            projectNames.push(projectName);
+
+            // Add to dropdown if already created
+            if (projectDropdown) {
+                const option = document.createElement('option');
+                option.value = projectName;
+                option.textContent = projectName;
+                projectDropdown.appendChild(option);
+            }
+
+            newProject.value = '';
+            popup.classList.add('hidden');
         }
-        popup.classList.add('hidden');
     });
-    // Close logic
-    document.getElementById('close-template-project').addEventListener('click', () => {
+
+    popup.querySelector('#close-template-project').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
 
-    // Optional: Close if overlay is clicked
-    document.getElementById('overlay').addEventListener('click', () => {
+    popup.querySelector('#overlay').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
 }
-
-
