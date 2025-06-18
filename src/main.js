@@ -1,4 +1,6 @@
 import "./styles/main.css";
+import {createPopupTemplateTodo} from "./side-bar.js";
+
 
 
 export function createHeader(main) {
@@ -18,7 +20,7 @@ export function createMainContent(main) {
     main.appendChild(content);
 }
 
-export function Todo(title, description, dueDate, priority, notes, status, project) {
+export function Todo(title, description, dueDate, priority, notes, status, project, id) {
     // getters for the properties
     const getTitle = () => title;
     const getDescription = () => description;
@@ -27,6 +29,7 @@ export function Todo(title, description, dueDate, priority, notes, status, proje
     const getNotes = () => notes;
     const getStatus = () => status;
     const getProject = () => project;
+    const getId = () => id;
 
     // Setters for the properties
     const setNotes = (newNotes) => { notes = newNotes; };
@@ -36,6 +39,7 @@ export function Todo(title, description, dueDate, priority, notes, status, proje
     const setPriority = (newPriority) => { priority = newPriority; };
     const setStatus = (newStatus) => { status = newStatus; };
     const setProject = (newProject) => { project = newProject; };
+    const setId = (newId) => { id = newId; };
     return {
         getTitle,
         getDescription,
@@ -45,6 +49,8 @@ export function Todo(title, description, dueDate, priority, notes, status, proje
         setNotes,
         getStatus,
         getProject,
+        getId,
+        setId,
         setTitle,
         setProject,
         setDescription,
@@ -119,15 +125,13 @@ export function displayTask(todos) {
     const mainContent = document.querySelector('.content');
     mainContent.innerHTML = ''; // Clear previous content
 
-    if (todos.length > 0) {
+    if (todos.length === 0) return;
 
+    todos.forEach(todo => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
 
-
-        todos.forEach(todo => {
-            const card = document.createElement('div');
-            card.className = 'task-card';
-
-            card.innerHTML = `
+        card.innerHTML = `
             <h3>${todo.getTitle()}</h3>
             <p><strong>Project:</strong> ${todo.getProject()}</p>
             <p><strong>Description:</strong> ${todo.getDescription()}</p>
@@ -138,38 +142,12 @@ export function displayTask(todos) {
             <button class="edit-task">Edit</button>
         `;
 
-            card.querySelector('.edit-task').addEventListener('click', () => {
-                const newTitle = prompt('Edit title:', todo.getTitle());
-                const newDescription = prompt('Edit description:', todo.getDescription());
-                const newDueDate = prompt('Edit due date:', todo.getDueDate());
-                const newPriority = prompt('Edit priority (low/medium/high):', todo.getPriority());
-                const newNote = prompt('Edit note:', todo.getNotes());
-
-                if (newTitle) todo.setTitle(newTitle);
-                if (newDescription) todo.setDescription(newDescription);
-                if (newDueDate) todo.setDueDate(newDueDate);
-                if (newPriority) todo.setPriority(newPriority);
-                if (newNote) todo.setNotes(newNote);
-
-                // Re-render this specific card
-                card.innerHTML = `
-                <h3>${todo.getTitle()}</h3>
-                <p><strong>Project:</strong> ${todo.getProject()}</p>
-                <p><strong>Description:</strong> ${todo.getDescription()}</p>
-                <p><strong>Due:</strong> ${todo.getDueDate()}</p>
-                <p><strong>Priority:</strong> ${todo.getPriority()}</p>
-                <p><strong>Note:</strong> ${todo.getNotes()}</p>
-                <p><strong>Status:</strong> ${todo.getStatus()}</p>
-                <button class="edit-task">Edit</button>
-            `;
-
-                // Reattach the event listener to the new button
-                card.querySelector('.edit-task').addEventListener('click', arguments.callee);
-            });
-
-            mainContent.appendChild(card);
+        card.querySelector('.edit-task').addEventListener('click', () => {
+            const popup = createPopupTemplateTodo(true, todo);
+            popup.show();
         });
-    }
-}
 
+        mainContent.appendChild(card);
+    });
+}
 

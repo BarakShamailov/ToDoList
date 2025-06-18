@@ -1,10 +1,10 @@
 import "./styles/side-bar.css";
-import { displayProject,Todo, displayTask } from "./main.js"; // Assuming displayProject is defined in main.js
+import { displayProject, Todo, displayTask } from "./main.js"; // Assuming displayProject is defined in main.js
 
 export const todosNames = [];
 
 
-const projectNames = ['Default', 'Work', 'Personal','Education'];
+const projectNames = ['Default', 'Work', 'Personal', 'Education'];
 const projects = ['+ Add a new project', ...projectNames];
 
 export function createSidebar() {
@@ -43,12 +43,12 @@ export function createSidebar() {
         li.textContent = project;
         if (li.textContent === '+ Add a new project') {
             li.classList.add('add-project'); // Add class for targeting
-            
+
 
         }
-        else{
+        else {
             li.addEventListener('click', () => {
-                displayProject(li.textContent); 
+                displayProject(li.textContent);
             });
         }
         projectList.appendChild(li);
@@ -58,7 +58,7 @@ export function createSidebar() {
         if (e.target.classList.contains('add-project')) {
             const popup = document.getElementById('template-popup-project');
             popup.classList.remove('hidden');
-            
+
         }
     });
 
@@ -114,46 +114,47 @@ export function createSidebar() {
     return sidebar;
 }
 
-export function createPopupTemplateTodo() {
+export function createPopupTemplateTodo(edit = false, existingTodo = null) {
+
     const popup = document.createElement('div');
     popup.id = 'template-popup';
-    popup.className = 'hidden';
+    popup.className = 'popup hidden'; // ensure it's styled properly
 
     popup.innerHTML = `
       <div class="overlay" id="overlay"></div>
       <div class="template-container">
-        <h2>Please Fill The details</h2>
+        <h2>${edit ? 'Edit Task' : 'Add New Task'}</h2>
         <form id="details-form">
           <label for="project">Project:</label>
           <select id="project" name="project" required></select><br><br>
-          
+
           <label for="title">Title:</label>
           <input type="text" id="title" name="title" required><br><br>
-          
+
           <label for="description">Description:</label>
           <input type="text" id="description" name="description" required><br><br>
-          
+
           <label for="dueDate">Due Date:</label>
           <input type="date" id="dueDate" name="dueDate" required><br><br>
-          
+
           <label for="priority">Priority:</label>
           <select id="priority" name="priority" required>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select><br><br>
-          
+
           <label for="status">Status:</label>
           <select id="status" name="status" required>
             <option value="backlog">Backlog</option>
             <option value="in-progress">In Progress</option>
             <option value="completed">Completed</option>
           </select><br><br>
-          
+
           <label for="note">Note:</label><br><br>
           <textarea id="note" name="note" rows="4" cols="30" placeholder="Write your note here..."></textarea><br><br>
-          
-          <button type="submit" id="sub-todo">Add</button>
+
+          <button type="submit" id="sub-todo">${edit ? 'Edit' : 'Add Task'}</button>
           <button type="button" id="close-template">Close</button>
         </form>
       </div>
@@ -161,9 +162,11 @@ export function createPopupTemplateTodo() {
 
     document.body.appendChild(popup);
 
-    const projectSelect = popup.querySelector('#project');
+    const form = popup.querySelector('#details-form');
+    const projectSelect = form.project;
+
     function populateProjectDropdown() {
-        projectSelect.innerHTML = ''; // clear existing
+        projectSelect.innerHTML = '';
         projectNames.forEach(project => {
             const option = document.createElement('option');
             option.value = project;
@@ -174,10 +177,19 @@ export function createPopupTemplateTodo() {
 
     populateProjectDropdown();
 
-    const form = popup.querySelector('#details-form');
+    // Pre-fill values if editing
+    if (edit && existingTodo) {
+        form.title.value = existingTodo.getTitle();
+        form.description.value = existingTodo.getDescription();
+        form.dueDate.value = existingTodo.getDueDate();
+        form.priority.value = existingTodo.getPriority();
+        form.note.value = existingTodo.getNotes();
+        form.status.value = existingTodo.getStatus();
+        form.project.value = existingTodo.getProject();
+    }
 
-    form.addEventListener('submit', function (event) {
-        event.preventDefault();
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
         const title = form.title.value;
         const description = form.description.value;
@@ -185,26 +197,27 @@ export function createPopupTemplateTodo() {
         const priority = form.priority.value;
         const note = form.note.value;
         const status = form.status.value;
-        const selectedProject = form.project.value;
+        const project = form.project.value;
 
-        const todo = Todo(title, description, dueDate, priority, note, status, selectedProject);
-        todosNames.push(todo); // Store the todo object in the array
-
-
-        displayTask(todosNames);
-
-        const newTodo = document.getElementById('title');
-        const todoList = document.querySelector('.todo-list');
-        if (newTodo && newTodo.value.trim() !== '') {
-            const li = document.createElement('li');
-            li.textContent = newTodo.value;
-            todoList.appendChild(li);
-            newTodo.value = '';
+        if (edit && existingTodo) {
+            existingTodo.setTitle(title);
+            existingTodo.setDescription(description);
+            existingTodo.setDueDate(dueDate);
+            existingTodo.setPriority(priority);
+            existingTodo.setNotes(note);
+            existingTodo.setStatus(status);
+            existingTodo.setProject(project);
+        } else {
+            const newTodo = Todo(title, description, dueDate, priority, note, status, project,todosNames.length + 1);
+            todosNames.push(newTodo);
         }
 
         popup.classList.add('hidden');
         form.reset();
-    });
+        displayTask(todosNames);
+    };
+
+    form.addEventListener('submit', handleSubmit);
 
     popup.querySelector('#close-template').addEventListener('click', () => {
         popup.classList.add('hidden');
@@ -214,9 +227,13 @@ export function createPopupTemplateTodo() {
         popup.classList.add('hidden');
     });
 
-    // Expose function so others can update the dropdown
-    popup.populateProjectDropdown = populateProjectDropdown;
+    return {
+        show: () => popup.classList.remove('hidden'),
+        hide: () => popup.classList.add('hidden')
+    };
+
 }
+
 
 
 
@@ -243,7 +260,7 @@ export function createPopupTemplateProject() {
     const form = popup.querySelector('#details-form');
 
     form.addEventListener('submit', (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         const newProject = document.getElementById('name');
         const projectList = document.querySelector('.project-list');
         const projectDropdown = document.querySelector('#project');
