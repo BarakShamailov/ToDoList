@@ -135,7 +135,7 @@ export function createPopupTemplateTodo(edit = false, existingTodo = null) {
           <input type="text" id="description" name="description" required><br><br>
 
           <label for="dueDate">Due Date:</label>
-          <input type="date" id="dueDate" name="dueDate" required><br><br>
+          <input type="date" id="dueDate" name="dueDate" ><br><br>
 
           <label for="priority">Priority:</label>
           <select id="priority" name="priority" required>

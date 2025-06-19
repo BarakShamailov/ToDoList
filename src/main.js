@@ -140,14 +140,55 @@ export function displayTask(todos) {
             <p><strong>Note:</strong> ${todo.getNotes()}</p>
             <p><strong>Status:</strong> ${todo.getStatus()}</p>
             <button class="edit-task">Edit</button>
+            <button class="delete-task">Delete</button>
         `;
 
         card.querySelector('.edit-task').addEventListener('click', () => {
             const popup = createPopupTemplateTodo(true, todo);
             popup.show();
         });
+        card.querySelector('.delete-task').addEventListener('click', () => {
+            console.log('Delete task clicked:', todo.getTitle());
+            const popup = document.createElement('div');
+            popup.id = 'delete-confirm-popup';
+            popup.className = 'popup';
+            popup.classList.remove('hidden');
+        
+            popup.innerHTML = `
+                <div class="overlay"></div>
+                <div class="template-container">
+                    <h2>Are you sure you want to delete this task?</h2>
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+                        <button id="confirm-delete" style="background-color: #3882F6; color: white;">Yes</button>
+                        <button id="cancel-delete">No</button>
+                    </div>
+                </div>
+            `;
+        
+            document.body.appendChild(popup);
+
+
+            document.getElementById('confirm-delete').addEventListener('click', () => {
+                deleteTask(todos, todo);
+                popup.remove(); // Remove the popup after confirmation
+                
+            });
+        
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                popup.remove(); // Remove the popup after confirmation
+            });
+          
+        });
 
         mainContent.appendChild(card);
     });
 }
 
+
+export function deleteTask(todos, todoToDelete) {
+    const index = todos.findIndex(todo => todo.getId() === todoToDelete.getId());
+    if (index !== -1) {
+        todos.splice(index, 1);
+        displayTask(todos); // Refresh the displayed tasks
+    }
+}
