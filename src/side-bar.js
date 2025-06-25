@@ -2,10 +2,11 @@ import "./styles/side-bar.css";
 import { displayProject, Todo, displayTask } from "./main.js"; // Assuming displayProject is defined in main.js
 
 export const todosNames = [];
+//localStorage.clear();
 
-
-const projectNames = ['Default', 'Work', 'Personal', 'Education'];
-const projects = ['+ Add a new project', ...projectNames];
+const test = loadLocalStorageProjects();
+const projectNames = loadLocalStorageProjects();
+const projects = ['+ Add a new project','🗑️ Delete  project', ...projectNames];
 
 export function createSidebar() {
     const sidebar = document.createElement('div');
@@ -46,9 +47,19 @@ export function createSidebar() {
 
 
         }
+        else if (li.textContent === '🗑️ Delete  project') {
+            li.classList.add('delete-project'); // Add class for targeting
+            li.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-project')) {
+                    const popup = document.getElementById('template-popup-delete');
+                    popup.classList.remove('hidden');
+        
+                }
+            });
+        }
         else {
             li.addEventListener('click', () => {
-                displayProject(li.textContent);
+                displayProject(li.textContent,todosNames);
             });
         }
         projectList.appendChild(li);
@@ -114,6 +125,60 @@ export function createSidebar() {
     return sidebar;
 }
 
+export function deleteProjectTemplatePopup() {
+    const popup = document.createElement('div');
+    popup.id = 'template-popup-delete';
+    popup.className = 'popup hidden'; // ensure it's styled properly
+
+    popup.innerHTML = `<div class="overlay" id="overlay"></div>
+      <div class="template-container">
+        <h2>Select the project to be deleted</h2>
+        <form id="delete-form">
+          <label for="project">Project:</label>
+          <select id="project" name="project" required></select><br><br>
+
+
+          <button type="submit" id="sub-todo">Delete</button>
+          <button type="button" id="close-template">Close</button>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    const form = popup.querySelector('#delete-form');
+    const projectSelect = form.project;
+
+    function populateProjectDropdown() {
+        projectSelect.innerHTML = '';
+        projectNames.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project;
+            option.textContent = project;
+            projectSelect.appendChild(option);
+        });
+    }
+
+    populateProjectDropdown();
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const deletedProject = form.project.value;
+        projectList.appendChild(li);
+
+
+        form.project.value = existingTodo.getProject();
+    
+    
+        projectNames.push(projectName);
+        saveLocalStorageProjects();
+
+
+    });
+ 
+
+}
+
 export function createPopupTemplateTodo(edit = false, existingTodo = null) {
 
     const popup = document.createElement('div');
@@ -146,9 +211,9 @@ export function createPopupTemplateTodo(edit = false, existingTodo = null) {
 
           <label for="status">Status:</label>
           <select id="status" name="status" required>
-            <option value="backlog">Backlog</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value="Backlog">Backlog</option>
+            <option value="In progress">In Progress</option>
+            <option value="Completed">Completed</option>
           </select><br><br>
 
           <label for="note">Note:</label><br><br>
@@ -270,9 +335,16 @@ export function createPopupTemplateProject() {
 
             const li = document.createElement('li');
             li.textContent = projectName;
+            li.addEventListener('click', () => {
+                displayProject(li.textContent,todosNames);
+            });
             projectList.appendChild(li);
 
+
+
+
             projectNames.push(projectName);
+            saveLocalStorageProjects();
 
             // Add to dropdown if already created
             if (projectDropdown) {
@@ -294,4 +366,16 @@ export function createPopupTemplateProject() {
     popup.querySelector('#overlay').addEventListener('click', () => {
         popup.classList.add('hidden');
     });
+}
+
+export function saveLocalStorageProjects() {
+    localStorage.setItem('projects', JSON.stringify(projectNames));
+}
+
+export function loadLocalStorageProjects() {
+    
+    const stored = localStorage.getItem('projects');
+    if (!stored) return ['Default', 'Work', 'Personal', 'Education']; // If nothing was stored yet
+    return JSON.parse(stored); // Converts JSON string back to array
+    
 }

@@ -77,7 +77,7 @@ export function Project(name, todos = []) {
     };
 }
 
-export function displayProject(info) {
+export function displayProject(info,todos) {
     const mainContent = document.querySelector('.content');
     mainContent.innerHTML = ''; // Clear previous content
 
@@ -103,18 +103,83 @@ export function displayProject(info) {
 
         const list = document.createElement('ul');
         list.className = `todo-list ${status.toLowerCase().replace(' ', '-')}-list`;
-
-        // Example: Load todos for this project and status
-        /*const todos = getTodosForProjectAndStatus(projectName, status);
-        todos.forEach(todo => {
-            const li = document.createElement('li');
-            li.textContent = todo.title; // or format as needed
-            list.appendChild(li);
-        });*/
-
+        
         column.appendChild(header);
-        column.appendChild(list);
+       
         board.appendChild(column);
+        function todoInProject(){
+            
+        }
+        // Example: Load todos for this project and status
+        const filteredTodos = todos.filter(todo => todo.getProject() === info && todo.getStatus().toLowerCase() === status.toLowerCase());
+        filteredTodos.forEach(todo => {
+            const task = document.createElement('div');
+            task.className = 'task-card';
+
+            task.innerHTML = `
+                <h3>${todo.getTitle()}</h3>
+                <p><strong>Description:</strong> ${todo.getDescription()}</p>
+                <p><strong>Due Date:</strong> ${todo.getDueDate()}</p>
+                <p><strong>Priority:</strong> ${todo.getPriority()}</p>
+                <p><strong>Note:</strong> ${todo.getNotes()}</p>
+                <p><strong>Note:</strong> ${todo.getNotes()}</p>
+                <p><strong>Status:</strong>
+                    <select class="status-select">
+                        <option value="Backlog" ${todo.getStatus() === "Backlog" ? "selected" : ""}>Backlog</option>
+                        <option value="In Progress" ${todo.getStatus() === "In Progress" ? "selected" : ""}>In Progress</option>
+                        <option value="Completed" ${todo.getStatus() === "Completed" ? "selected" : ""}>Completed</option>
+                    </select>
+                </p>
+                <button class="edit-task">Edit</button>
+                <button class="delete-task">Delete</button>
+            `;
+
+            task.querySelector('.status-select').addEventListener('change', (e) => {
+                todo.setStatus(e.target.value);
+                displayProject(info, todos); // Refresh the project display
+            });
+            task.querySelector('.edit-task').addEventListener('click', () => {
+                const popup = createPopupTemplateTodo(true, todo);
+                popup.show();
+            });
+            task.querySelector('.delete-task').addEventListener('click', () => {
+                console.log('Delete task clicked:', todo.getTitle());
+                const popup = document.createElement('div');
+                popup.id = 'delete-confirm-popup';
+                popup.className = 'popup';
+                popup.classList.remove('hidden');
+            
+                popup.innerHTML = `
+                    <div class="overlay"></div>
+                    <div class="template-container">
+                        <h2>Are you sure you want to delete this task?</h2>
+                        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+                            <button id="confirm-delete-task" style="background-color: #3882F6; color: white;">Yes</button>
+                            <button id="cancel-delete-task">No</button>
+                        </div>
+                    </div>
+                `;
+            
+                document.body.appendChild(popup);
+    
+    
+                document.getElementById('confirm-delete-task').addEventListener('click', () => {
+                    deleteTask(todos, todo);
+                    popup.remove(); // Remove the popup after confirmation
+                    
+                });
+            
+                document.getElementById('cancel-delete-task').addEventListener('click', () => {
+                    popup.remove(); // Remove the popup after confirmation
+                });
+            });
+
+            column.appendChild(task);
+
+        });
+      
+
+        
     });
 
     mainContent.appendChild(board);
@@ -135,13 +200,25 @@ export function displayTask(todos) {
             <h3>${todo.getTitle()}</h3>
             <p><strong>Project:</strong> ${todo.getProject()}</p>
             <p><strong>Description:</strong> ${todo.getDescription()}</p>
-            <p><strong>Due:</strong> ${todo.getDueDate()}</p>
+            <p><strong>Due Date:</strong> ${todo.getDueDate()}</p>
             <p><strong>Priority:</strong> ${todo.getPriority()}</p>
             <p><strong>Note:</strong> ${todo.getNotes()}</p>
-            <p><strong>Status:</strong> ${todo.getStatus()}</p>
+                <p><strong>Status:</strong>
+                    <select class="status-select">
+                        <option value="Backlog" ${todo.getStatus() === "Backlog" ? "selected" : ""}>Backlog</option>
+                        <option value="In Progress" ${todo.getStatus() === "In Progress" ? "selected" : ""}>In Progress</option>
+                        <option value="Completed" ${todo.getStatus() === "Completed" ? "selected" : ""}>Completed</option>
+                    </select>
+                </p>
             <button class="edit-task">Edit</button>
             <button class="delete-task">Delete</button>
         `;
+
+        card.querySelector('.status-select').addEventListener('change', (e) => {
+            todo.setStatus(e.target.value);
+            
+ 
+        });
 
         card.querySelector('.edit-task').addEventListener('click', () => {
             const popup = createPopupTemplateTodo(true, todo);

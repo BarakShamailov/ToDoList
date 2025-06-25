@@ -74,7 +74,9 @@
     color: rgb(69, 69, 69);
     text-align: center;
 }
-
+.task-card select{
+    width:140px;
+}
 .task-card button {
     margin-top: 10px;
     padding: 5px 10px;
